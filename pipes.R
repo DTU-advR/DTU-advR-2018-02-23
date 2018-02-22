@@ -35,7 +35,7 @@ microbenchmark(mean(x),
 1:10 %>% f(.)
 
 
-# pipe issues
+# pipe versatility
 
 x <- 1L:10
 x %>% mean
