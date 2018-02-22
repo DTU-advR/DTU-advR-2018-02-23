@@ -1,0 +1,35 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r}
+x <- 1L:10
+mean(x)
+```
+
+We can pipe without pipes
+```{r}
+x ->.; mean(.)
+```
+
+Although we still have . as an object
+```{r}
+.
+```
+
+
+```{r}
+library(magrittr)
+x %>% mean
+```
+
+There ared ifferent types of pipes
+
+```{r}
+library(pipeR)
+x %>>% mean
+```

@@ -43,12 +43,20 @@ x %>% mean()
 x %>% mean(.)
 
 # pipe and operators
+
+y <- x - 1
+mean(y)
+
 x - 1 %>% mean
-x - 1 %>% mean(.)
+x - 1 %>% mean
 (x - 1) %>% mean
+{x - 1} %>% mean
 x %>% (. - 1) %>% mean
 x %>% {. - 1} %>% mean
+x %>% (.) - 1 %>% mean
+x %>% {.} - 1 %>% mean
 x %>% mean(. - 1)
-x  %>%  mean((. - 1))
+x  %>%  mean((. - 1)) # why? because pipe receives the vector c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9) 
+x  %>%  mean({. - 1})
 
-
+             
