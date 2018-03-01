@@ -5,6 +5,7 @@ editor_options:
   chunk_output_type: inline
 ---
 
+# Basics of pipes
 
 ```{r}
 x <- 1L:10
@@ -21,15 +22,193 @@ Although we still have . as an object
 .
 ```
 
+In nutshell, pipe can be seen as:
+
+```{r}
+rm(.)
+local({x -> .; mean(.)})
+```
+
+Although there is a lot additional stuff, that allows pipe to 
+
 
 ```{r}
 library(magrittr)
 x %>% mean
 ```
 
-There ared ifferent types of pipes
+There are many types of pipes
 
 ```{r}
 library(pipeR)
 x %>>% mean
 ```
+
+# Other pipes from magrittr
+
+%T>%: breaks piping sequence.
+
+```{r}
+iris %>% 
+  plot %>% 
+  summary
+```
+
+In the example below iris is forwarded to plot by %T>%. The pipe operator %T>% also informs the next function, summary, that it should take as an argument the object precedenting %T>%.
+
+%$%: works like attach()
+
+```{r}
+iris %$% 
+  cor.test(Sepal.Length, Petal.Length)
+```
+
+%$% does wonders when working with lists. Compare normal pipe:
+
+```{r}
+my_list <- list(a = 1L:4,
+                b = 5L:7)
+
+my_list %>% 
+  getElement("a") %>% 
+  mean
+```
+
+and %$% pipe
+
+```{r}
+my_list %$% 
+  mean(a)
+```
+
+It can even replace some dplyr idioms as pull:
+
+```{r}
+iris %>% 
+  dplyr::pull(Sepal.Length) %>% 
+  mean
+```
+
+where %$% allows you to remove one pipe.
+
+```{r}
+iris %$% 
+  mean(Sepal.Length)
+```
+
+There is also assignment operator %<>%, which I really do not like.
+
+
+# Readable code is not always the most efficient code
+
+Pipes can slow you:
+
+```{r}
+library(microbenchmark)
+
+microbenchmark(mean(x),
+               x %>% mean,
+               x %>>% mean,
+               times = 1e4)
+```
+
+Let's see this in a bigger picture
+
+```{r}
+# pipe_bench <- lapply(1L:4, function(i) {
+#   x <- 1L:(10^i)
+#   summary(microbenchmark(mean(x),
+#                          x %>% mean,
+#                          x %>>% mean,
+#                          times = 1e6)) %>% 
+#     data.frame() %>% 
+#     mutate(vector_size = max(x))
+# }) %>% bind_rows()
+# save(pipe_bench, file = "pipe_bench.RData")
+
+load("pipe_bench.RData")
+library(ggplot2)
+ggplot(pipe_bench, aes(x = vector_size, y = mean, color = expr)) +
+  geom_point(size = 4) +
+  geom_line() +
+  scale_x_log10() +
+  theme_bw()
+```
+
+# Pipes and operators
+
+Pipes are versatile
+
+```{r}
+x <- 1L:10
+x %>% mean
+x %>% mean()
+x %>% mean(.)
+```
+
+The price for versatility is ambiguity, especially with operators
+
+```{r}
+vec <- 1L:10
+y <- vec - 1
+mean(y)
+```
+
+The intuitive solution fails:
+```{r}
+vec - 1 %>% mean
+```
+
+The following works properly and are synomous...
+```{r}
+(vec - 1) %>% mean
+{vec - 1} %>% mean
+```
+
+...but be careful, because '{' and '(' are not equal.
+
+```{r}
+vec %>% {. - 1} %>% mean # yes
+vec %>% (. - 1) %>% mean # no
+```
+
+The following structures are always wrong:
+```{r}
+vec %>% (.) - 1 %>% mean
+vec %>% {.} - 1 %>% mean
+```
+
+And following examples are also wrong, but for a different reason
+
+```{r}
+vec %>% mean(. - 1)
+vec  %>%  mean((. - 1)) 
+vec  %>%  mean({. - 1})
+```
+
+Here, pipe forwards vec to mean() in a peculariar way. vec is a first argument, and {. - 1} is treated as an argument to trim.
+
+We will study this behavior in depth using a simpler example:
+
+```{r}
+simple_fun <- function(x, y = 1, z = 1) {
+  list(x, y, z)
+}
+
+(vec - 1) %>% simple_fun
+```
+```{r}
+vec %>% simple_fun({. - 1})
+```
+
+If we use '{' or '(' inside the function called after pipe, it will automatically switch to the second argument. 
+
+Of course, the most magrittr way to use operators is to rely on pipe-friendly aliases as 'add':
+
+```{r}
+vec %>% 
+  add(-1) %>% 
+  mean
+```
+
+Happy piping to all!
