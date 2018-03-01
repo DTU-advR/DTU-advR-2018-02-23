@@ -211,4 +211,10 @@ vec %>%
   mean
 ```
 
-Happy piping to all!
+# Customizing my shortcuts
+
+```
+remotes::install_github("michbur/addinexamplesWV")
+```
+
+Then go for Tools/Addins, choose you favorite pipes, add shortcuts (I like ctrl+shift+,) and enjoy piping!
